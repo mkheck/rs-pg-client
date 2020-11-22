@@ -26,8 +26,9 @@ public class Thing2Application {
 
     @Bean
     RSocketRequester requester(RSocketRequester.Builder builder, RSocketStrategies strategies) {
-        //return builder.tcp("localhost", 8090);
+        return builder.tcp("localhost", 8090);
 
+/*
         // Replace above single line with what follows to enable
         // server-initiated request
         RSocketRequester requester;
@@ -42,6 +43,7 @@ public class Thing2Application {
                 .rsocketConnector(connector -> connector.acceptor(responder))
                 .tcp("localhost", 8090);
 
+*/
 /*
         // Problematic, errors out now
         requester.rsocket()
@@ -49,9 +51,11 @@ public class Thing2Application {
                 .doOnError(err -> System.out.println("Connection CLOSED"))
                 .doFinally(con -> System.out.println("Client DISCONNECTED"))
                 .subscribe();
-*/
+*//*
+
 
         return requester;
+*/
     }
 }
 
@@ -98,10 +102,18 @@ class Something {
     void bidirectionalStream() {
         requester.route("bidirectional")
                 .data(Flux.interval(Duration.ofSeconds(1))
-                        //.map(l -> new Ping("Inbound Ping " + l.toString())))
                         .map(l -> new Ping(" <<< Ping from Thing 2: " + l.toString())))
                 .retrieveFlux(Pong.class)
-                //.log()
+                .subscribe();
+    }
+
+    @PostConstruct
+    void bidirectionalButNotReally() {
+        requester.route("datafromclient")
+                .data(Flux.interval(Duration.ofSeconds(1))
+                        .map(l -> new Ping(" <<< Ping from Thing 2: " + l.toString())))
+                .retrieveFlux(Void.class)
+                .log()
                 .subscribe();
     }
 
@@ -113,14 +125,14 @@ class Something {
     }
 }
 
-class ClientHandler {
+/*class ClientHandler {
     @MessageMapping("client")
     Flux<Ping> handleRequest(Mono<Pong> pongMono) {
         return pongMono.log().thenMany(
                 Flux.interval(Duration.ofSeconds(1))
                 .map(l -> new Ping(" <<< Ping from Thing 2: " + l.toString())));
     }
-}
+}*/
 
 @Component
 class SomethingElse {
